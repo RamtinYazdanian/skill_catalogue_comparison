@@ -5,6 +5,12 @@ import gensim
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
+def remove_nones(l):
+    return [x for x in l if x is not None]
+
+def none_to_zero(l, d=300):
+    return [x if x is not None else np.zeros(d) for x in l]
+
 def make_sure_path_exists(path):
     try:
         os.makedirs(path)
@@ -25,14 +31,14 @@ def calculate_word_pair_similarity(w2v_model, word_1, word_2):
 def calculate_word_vec(s, w2v_model):
     if isinstance(s, str):
         if '\n' in s:
-            return np.sum([calculate_word_vec(x, w2v_model) for x in s.split('\n')], axis=0)
+            return np.sum(none_to_zero([calculate_word_vec(x, w2v_model) for x in s.split('\n')]), axis=0)
         else:
-            return np.sum([w2v_model.wv[x] for x in s.split(' ') if x in w2v_model.wv], axis=0)
+            return np.sum([w2v_model.wv[x] if x in w2v_model.wv else np.zeros(w2v_model.vector_size) for x in s.split(' ')], axis=0)
     elif isinstance(s, list):
-        return np.sum([calculate_word_vec(x, w2v_model) for x in s], axis=0)
+        return np.sum(none_to_zero([calculate_word_vec(x, w2v_model) for x in s]), axis=0)
 
 def get_df_word_vectors(df, column_list, w2v_model):
-    df_word_vectors = df.apply(lambda x: calculate_word_vec([x[y] for y in column_list], w2v_model), axis=0).values
+    df_word_vectors = df.apply(lambda x: calculate_word_vec([x[y] for y in column_list], w2v_model), axis=1).values.tolist()
     df_word_vectors = np.array(df_word_vectors)
     return df_word_vectors
 
