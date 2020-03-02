@@ -16,7 +16,7 @@ def invert_dict(d):
     return {d[k]: k for k in d}
 
 def load_w2v_model(filename, is_bin=True):
-    model = gensim.models.Word2Vec.load_word2vec_format(filename, binary=is_bin)
+    model = gensim.models.KeyedVectors.load_word2vec_format(filename, binary=is_bin)
     return model
 
 def calculate_word_pair_similarity(w2v_model, word_1, word_2):
