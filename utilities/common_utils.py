@@ -25,9 +25,6 @@ def load_w2v_model(filename, is_bin=True):
     model = gensim.models.KeyedVectors.load_word2vec_format(filename, binary=is_bin)
     return model
 
-def calculate_word_pair_similarity(w2v_model, word_1, word_2):
-    return cosine_similarity(w2v_model.wv[word_1], w2v_model.wv[word_2])
-
 def calculate_word_vec(s, w2v_model):
     if isinstance(s, str):
         if '\n' in s:
@@ -36,6 +33,9 @@ def calculate_word_vec(s, w2v_model):
             return np.sum([w2v_model.wv[x] if x in w2v_model.wv else np.zeros(w2v_model.vector_size) for x in s.split(' ')], axis=0)
     elif isinstance(s, list):
         return np.sum(none_to_zero([calculate_word_vec(x, w2v_model) for x in s]), axis=0)
+
+def calculate_phrase_pair_similarity(w2v_model, word_1, word_2):
+    return cosine_similarity(calculate_word_vec(word_1, w2v_model), calculate_word_vec(word_2, w2v_model))
 
 def get_df_word_vectors(df, column_list, w2v_model):
     df_word_vectors = df.apply(lambda x: calculate_word_vec([x[y] for y in column_list], w2v_model), axis=1).values.tolist()
