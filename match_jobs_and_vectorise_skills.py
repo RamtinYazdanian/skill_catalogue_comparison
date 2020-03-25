@@ -1,9 +1,9 @@
 import pandas as pd
 import pickle
-import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from itertools import chain
 from utilities.common_utils import *
+from utilities.pandas_utils import make_indexed_columns
 from utilities.text_utils import *
 from utilities.dataset_constants import *
 from functools import reduce
@@ -37,34 +37,6 @@ def explode_appended_titles(df, id_col):
     return df.set_index(id_col)['appended_titles'].apply(pd.Series).stack().\
                     reset_index(level=0).rename(columns={0:'title_simple'})
 
-def make_two_cols_map(df, col_key, col_val):
-    """
-    Takes a dataframe and two of its columns, returns a dictionary mapping the keys to the values.
-    :param df: The dataframe.
-    :param col_key: The column containing the keys. Should have unique values.
-    :param col_val: The column containing the values.
-    :return: A dictionary.
-    """
-    return {df[col_key].values[i]:df[col_val].values[i] for i in range(df.shape[0])}
-
-def make_indexed_columns(df, col_names, reverse=None):
-    """
-    Given a dataframe where multiple non-unique columns need to be bound together, uses the numerical index
-    as a uniting id.
-    :param df: The dataframe
-    :param col_names: List of column names to be bound together
-    :param reverse: Whether the mapping should be from column values to the index. Either a list or None.
-    :return: A list of dictionaries, each mapping the index to one of the columns.
-    """
-    result_list = list()
-    df = df.reset_index()
-    for i in range(len(col_names)):
-        colname = col_names[i]
-        if reverse is None or reverse[i]:
-            result_list.append(make_two_cols_map(df, 'index', colname))
-        else:
-            result_list.append(make_two_cols_map(df, colname, 'index'))
-    return result_list
 
 def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
     """
@@ -83,7 +55,7 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
     for i in range(len(dfs)):
         all_exact_match_jobs = pd.merge(all_exact_match_jobs, dfs[i], on=id_cols[i])
     return all_exact_match_jobs, make_indexed_columns(all_exact_match_jobs,
-                                                        id_cols+['title_simple'], None)
+                                                      id_cols + ['title_simple'], None)
 
 def get_skills_to_investigate_direct_match(skills_and_relations, id_cols, job_titles):
     """
@@ -121,8 +93,8 @@ def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
     :param count_vec: Whether to count vectorise, or calculate TF-IDF (default).
     :param return_sum_all: Whether to also return a single vector which is the sum of the whole column's vectors.
     :param dense: Whether to return dense or sparse results.
-    :return: A list of either numpy 1d arrays or single row sparse matrices, optionally plus the vector that is the
-            sum of them all.
+    :return: A list of n (n being the number of dfs) lists of either numpy 1d arrays or single row sparse matrices,
+            optionally plus the vector that is the sum of them all.
     """
     cleaned_text = [df[col_name].apply(lambda x: ' '.join(tokenise_stem_punkt_and_stopword(x, do_stem=do_stem))).values
                     for df, col_name in dfs_and_colnames]
@@ -194,6 +166,16 @@ def main():
         vec_list = None
         model = None
 
+    if vec_list is not None:
+        new_vec_list = list()
+        for i in range(len(skills_to_investigate)):
+            common_ids = skills_to_investigate[i]['common_id'].values.tolist()
+            current_vec_list = vec_list[i]
+            new_vec_list.append([(common_ids[j], current_vec_list[j]) for j in range(len(current_vec_list))])
+    else:
+        new_vec_list = None
+
+
     for i in range(len(skills_to_investigate)):
         with open(os.path.join(output_dir, dataset_names[i]+'_skills.pkl'), 'wb') as f:
             pickle.dump(skills_to_investigate[i], f)
@@ -201,7 +183,7 @@ def main():
         pickle.dump(all_exact_match_jobs, f)
     if vec_list is not None:
         with open(os.path.join(output_dir, 'vec_list.pkl'), 'wb') as f:
-            pickle.dump(vec_list, f)
+            pickle.dump(new_vec_list, f)
         with open(os.path.join(output_dir, 'tfidf_model.pkl'), 'wb') as f:
             pickle.dump(model, f)
 
