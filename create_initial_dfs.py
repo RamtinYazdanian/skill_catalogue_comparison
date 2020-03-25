@@ -56,6 +56,9 @@ def main():
     onet_skills_and_relations = pd.merge(onet_skills_and_relations,
                                          onet_jobs, on='O*NET-SOC Code')
     onet_skills_and_relations['is_essential'] = onet_skills_and_relations['Task Type'].apply(lambda x: x == 'Core')
+    onet_skills_and_relations = pd.merge(onet_skills_and_relations,
+                                         onet_career_clusters[['Code', 'Career Cluster', 'Career Pathway']],
+                                                left_on='O*NET-SOC Code', right_on='Code').drop('Code')
 
     # Preparing ESCO skills and relations data
     esco_skills_and_relations = pd.merge(pd.merge(esco_skills, esco_job_skill_relations.drop(columns=['skillType']),
