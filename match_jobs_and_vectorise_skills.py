@@ -129,7 +129,7 @@ def main():
                                             'Names of pickled skills and relations dataframe files, comma separated.')
     parser.add_argument('--datasets', type=str, required=True, help=
                                                     'Names of datasets, comma separated, '
-                                                            'same order as filenames. Options are esco and onet.')
+                                                            'same order as filenames. Options are ESCO and ONET.')
     parser.add_argument('--countvec', action='store_true')
     parser.add_argument('--tfidf', action='store_true')
     args = parser.parse_args()
@@ -167,13 +167,8 @@ def main():
         model = None
 
     if vec_list is not None:
-        new_vec_list = list()
         for i in range(len(skills_to_investigate)):
-            common_ids = skills_to_investigate[i]['common_id'].values.tolist()
-            current_vec_list = vec_list[i]
-            new_vec_list.append([(common_ids[j], current_vec_list[j]) for j in range(len(current_vec_list))])
-    else:
-        new_vec_list = None
+            skills_to_investigate[i]['O_'+dataset_names[i]] = vec_list[i]
 
 
     for i in range(len(skills_to_investigate)):
@@ -182,8 +177,6 @@ def main():
     with open(os.path.join(output_dir, 'matches_df.pkl'), 'wb') as f:
         pickle.dump(all_exact_match_jobs, f)
     if vec_list is not None:
-        with open(os.path.join(output_dir, 'vec_list.pkl'), 'wb') as f:
-            pickle.dump(new_vec_list, f)
         with open(os.path.join(output_dir, 'tfidf_model.pkl'), 'wb') as f:
             pickle.dump(model, f)
 
