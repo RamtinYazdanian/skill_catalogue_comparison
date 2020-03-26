@@ -1,6 +1,6 @@
-job_id_cols = {'onet': 'O*NET-SOC Code',
-               'esco': 'conceptUri'}
-skill_relations_id_cols = {'esco': 'occupationUri', 'onet': 'O*NET-SOC Code'}
-main_titles = {'onet': 'Title', 'esco': 'preferredLabel'}
-alternative_titles = {'onet': None, 'esco': 'altLabels'}
-skill_labels = {'onet': 'Task', 'esco': 'description_skill'}
+job_id_cols = {'ONET': 'O*NET-SOC Code',
+               'ESCO': 'conceptUri'}
+skill_relations_id_cols = {'ESCO': 'occupationUri', 'ONET': 'O*NET-SOC Code'}
+main_titles = {'ONET': 'Title', 'ESCO': 'preferredLabel'}
+alternative_titles = {'ONET': None, 'ESCO': 'altLabels'}
+skill_labels = {'ONET': 'Task', 'ESCO': 'description_skill'}
