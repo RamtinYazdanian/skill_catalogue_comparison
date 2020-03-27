@@ -84,7 +84,7 @@ def get_skills_to_investigate_direct_match(skills_and_relations, id_cols, job_ti
     return result_list
 
 def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
-                            count_vec=False, return_sum_all=False, dense=False):
+                            count_vec=False, return_sum_all=False, dense=False, ngrams=1):
     """
     Calculates TF-IDF or word count vectors for each row in a column.
     :param dfs_and_colnames: List of tuples; each tuple is (dataframe, colname).
@@ -99,9 +99,9 @@ def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
     cleaned_text = [df[col_name].apply(lambda x: ' '.join(tokenise_stem_punkt_and_stopword(x, do_stem=do_stem))).values
                     for df, col_name in dfs_and_colnames]
     if count_vec:
-        vec_model = CountVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df)
+        vec_model = CountVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df, ngram_range=(1, ngrams))
     else:
-        vec_model = TfidfVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df)
+        vec_model = TfidfVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df, ngram_range=(1, ngrams))
     vec_model.fit(list(chain.from_iterable(cleaned_text)))
     vec_matrices = [vec_model.transform(text) for text in cleaned_text]
     if not return_sum_all:
@@ -132,6 +132,7 @@ def main():
                                                             'same order as filenames. Options are ESCO and ONET.')
     parser.add_argument('--countvec', action='store_true')
     parser.add_argument('--tfidf', action='store_true')
+    parser.add_argument('--ngrams', type=int, default=1)
     args = parser.parse_args()
 
     if args.countvec and args.tfidf:
@@ -156,12 +157,12 @@ def main():
 
     if args.countvec:
         vec_list, model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
-                                                   for i in range(len(skills_to_investigate))], do_stem=True,
-                                                   count_vec=True, return_sum_all=False, dense=False)
+                                               for i in range(len(skills_to_investigate))], do_stem=True,
+                                               count_vec=True, return_sum_all=False, dense=False, ngrams=args.ngrams)
     elif args.tfidf:
         vec_list, model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
-                                                   for i in range(len(skills_to_investigate))], do_stem=True,
-                                                   count_vec=False, return_sum_all=False, dense=False)
+                                               for i in range(len(skills_to_investigate))], do_stem=True,
+                                               count_vec=False, return_sum_all=False, dense=False, ngrams=args.ngrams)
     else:
         vec_list = None
         model = None
