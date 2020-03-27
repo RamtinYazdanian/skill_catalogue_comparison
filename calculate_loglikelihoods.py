@@ -5,6 +5,13 @@ from utilities.common_utils import *
 from utilities.pandas_utils import *
 import pickle
 
+def associate_words_with_datasets(df, vocab, suffixes):
+    for i in range(len(suffixes)):
+        suffix = suffixes[i]
+        other_suffix = suffixes[(i+1)%len(suffixes)]
+        df['words_'+suffix] = df.apply(lambda x: [y for y in x['top_words'] if
+                                                  x['O_'+suffix][1,vocab[y]] > x['O_'+other_suffix][1,vocab[y]]])
+    return
 
 def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
                             aggregation_df=None, names_df=None, significant_only=False, top_n=20):
@@ -63,6 +70,9 @@ def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
         current_joined_df['top_words'] = find_top_words(current_joined_df,
                                                         'LL', countvec_model, top_n=top_n, lower_bound=7.82,
                                                         modify_df=False)
+    for i in range(len(dfs)):
+        associate_words_with_datasets(current_joined_df, countvec_model.vocabulary_, df_suffixes)
+
     if names_df is not None:
         current_joined_df = current_joined_df.join(names_df)
 
