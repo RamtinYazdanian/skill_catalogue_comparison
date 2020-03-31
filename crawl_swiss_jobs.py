@@ -39,7 +39,7 @@ def get_individual_vocation(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     vocation_name = soup.head.title.text
-    vocation_name = remove_punkt(vocation_name[:vocation_name.find('/')].replace('CFC', '')).strip()
+    vocation_name = remove_punkt((vocation_name.split('-')[0].split('/')[0]).replace('CFC', '')).strip()
     skills_list = soup.find('div', {'id': 'content'}).find('div', {'class': 'cont'}).\
                        find('div', {'class': 'toggleWrapper'}).findAll('div', {'class': 'toggleBox'})[0].\
                        find('div', {'class': 'boxContent'}).findAll('li')
