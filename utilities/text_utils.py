@@ -20,7 +20,7 @@ def generate_n_grams(tokens, return_string=True, n=3):
     else:
         return generate_n_grams(tokens, return_string=return_string, n=n-1)
 
-def remove_punkt(punkt_to_remove, text):
+def remove_punkt(text, punkt_to_remove=PUNKT):
     nopunkt = " ".join("".join([" " if ch in punkt_to_remove else ch for ch in text]).split())
     return nopunkt
 
@@ -39,7 +39,7 @@ def tokenise_stem_punkt_and_stopword(text, punkt_to_remove=PUNKT, remove_numbers
     text = text.lower()
     # Tokenises and removes punctuation.
     if punkt_to_remove is not None:
-        tokenised = remove_punkt(punkt_to_remove, text).split()
+        tokenised = remove_punkt(text, punkt_to_remove).split()
     else:
         tokenised = text.split()
 
