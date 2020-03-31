@@ -27,6 +27,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import googletrans
 from utilities.common_utils import make_sure_path_exists
+from utilities.text_utils import remove_punkt
 import pickle
 import os
 import argparse
@@ -38,7 +39,7 @@ def get_individual_vocation(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     vocation_name = soup.head.title.text
-    vocation_name = vocation_name[:vocation_name.find('CFC')].strip()
+    vocation_name = remove_punkt(vocation_name[:vocation_name.find('/')].replace('CFC', '')).strip()
     skills_list = soup.find('div', {'id': 'content'}).find('div', {'class': 'cont'}).\
                        find('div', {'class': 'toggleWrapper'}).findAll('div', {'class': 'toggleBox'})[0].\
                        find('div', {'class': 'boxContent'}).findAll('li')
