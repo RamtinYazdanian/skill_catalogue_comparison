@@ -74,20 +74,25 @@ def get_all_vocations(starting_page_url, base_url):
 def translate_df(df, origin='fr'):
     translator = googletrans.Translator()
     for col in df.columns.values.tolist():
-        df[col] = df[col].apply(lambda x: translator.translate(x, dest='en', src=origin))
+        df[col] = df[col].apply(lambda x: translator.translate(x, dest='en', src=origin).text)
     return df
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output_dir', type=str, required=True)
+    parser.add_argument('--translate', action='store_true')
     args = parser.parse_args()
     jobs_df = get_all_vocations(STARTING_URL, BASE_URL)
+    print('crawling jobs completed')
+    print(jobs_df.head())
     make_sure_path_exists(args.output_dir)
     with open(os.path.join(args.output_dir, 'skills_fr.pkl'), 'wb') as f:
         pickle.dump(jobs_df, f)
-    translated_df = translate_df(jobs_df, 'fr')
-    with open(os.path.join(args.output_dir, 'skills_en.pkl'), 'wb') as f:
-        pickle.dump(translated_df, f)
+    if args.translate:
+        print('starting translation')
+        translated_df = translate_df(jobs_df, 'fr')
+        with open(os.path.join(args.output_dir, 'skills_en.pkl'), 'wb') as f:
+            pickle.dump(translated_df, f)
 
 
 if __name__ == '__main__':
