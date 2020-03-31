@@ -73,9 +73,10 @@ def get_all_vocations(starting_page_url, base_url):
 
 def translate_df(df, origin='fr'):
     translator = googletrans.Translator()
-    for col in df.columns.values.tolist():
-        df[col] = df[col].apply(lambda x: translator.translate(x, dest='en', src=origin).text)
-    return df
+    col_values = {col: df[col].values.tolist() for col in df.columns.values}
+    translated_cols = {col: translator.translate(col_values[col], src=origin) for col in col_values}
+    translated_cols = {col: [x.text for x in translated_cols[col]] for col in col_values}
+    return pd.DataFrame(translated_cols)
 
 def main():
     parser = argparse.ArgumentParser()
