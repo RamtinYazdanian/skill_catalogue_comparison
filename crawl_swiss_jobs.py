@@ -34,6 +34,8 @@ import argparse
 
 BASE_URL = 'https://www.orientation.ch'
 STARTING_URL = 'https://www.orientation.ch/dyn/show/1922'
+YANDEX_KEY = 'trnsl.1.1.20200401T085601Z.a2a0989bcd9a4117.6be29f3679a7ee3af61f9fbcfa716ce7231a1a2e'
+YANDEX_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
 
 def get_individual_vocation(url):
     response = requests.get(url)
@@ -71,12 +73,11 @@ def get_all_vocations(starting_page_url, base_url):
         df_list.append(get_individual_vocation(base_url+url))
     return pd.concat(df_list, axis=0)
 
-def translate_df(df, origin='fr'):
-    translator = googletrans.Translator()
-    col_values = {col: df[col].values.tolist() for col in df.columns.values}
-    translated_cols = {col: translator.translate(col_values[col], src=origin) for col in col_values}
-    translated_cols = {col: [x.text for x in translated_cols[col]] for col in col_values}
-    return pd.DataFrame(translated_cols)
+def translate_df(df, translation_dir='fr-en'):
+    base_url = YANDEX_URL +'?key=' + YANDEX_KEY +'&lang=' + translation_dir + '&text='
+    for col_name in df.columns.values:
+        df[col_name+'_en'] = df[col_name].apply(lambda x: requests.get(base_url+x).json()['text'])
+    return df
 
 def main():
     parser = argparse.ArgumentParser()
