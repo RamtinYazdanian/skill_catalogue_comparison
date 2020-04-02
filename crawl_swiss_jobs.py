@@ -41,7 +41,7 @@ def get_individual_vocation(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     vocation_name = soup.head.title.text
-    vocation_name = remove_punkt((vocation_name.split('-')[0].split('/')[0]).replace('CFC', '')).strip()
+    vocation_name = remove_punkt(('-'.join(vocation_name.split('-')[:-1]).split('/')[0]).replace('CFC', '')).strip()
     skills_list = soup.find('div', {'id': 'content'}).find('div', {'class': 'cont'}).\
                        find('div', {'class': 'toggleWrapper'}).findAll('div', {'class': 'toggleBox'})[0].\
                        find('div', {'class': 'boxContent'}).findAll('li')
@@ -76,7 +76,7 @@ def get_all_vocations(starting_page_url, base_url):
 def translate_df(df, translation_dir='fr-en'):
     base_url = YANDEX_URL +'?key=' + YANDEX_KEY +'&lang=' + translation_dir + '&text='
     for col_name in df.columns.values:
-        df[col_name+'_en'] = df[col_name].apply(lambda x: requests.get(base_url+x).json()['text'])
+        df[col_name+'_en'] = df[col_name].apply(lambda x: requests.get(base_url+x).json()['text'][0])
     return df
 
 def main():
