@@ -34,7 +34,7 @@ def make_indexed_columns(df, col_names, reverse=None):
             result_list.append(make_two_cols_map(df, colname, 'index'))
     return result_list
 
-def find_top_words(df, colname, tfidf_model, top_n=10, lower_bound=None, modify_df=True):
+def find_top_words(df, colname, tfidf_model, top_n=10, lower_bound=0, modify_df=True):
     vocab = invert_dict(tfidf_model.vocabulary_)
     if isinstance(df.iloc[0][colname], csr_matrix):
         df[colname] = df[colname].apply(lambda x: np.array(x.todense()).flatten())
