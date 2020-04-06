@@ -37,16 +37,24 @@ STARTING_URL = 'https://www.orientation.ch/dyn/show/1922'
 YANDEX_KEY = 'trnsl.1.1.20200401T085601Z.a2a0989bcd9a4117.6be29f3679a7ee3af61f9fbcfa716ce7231a1a2e'
 YANDEX_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
 
-def get_individual_vocation(url):
+def clean_vocation_name(vocation_name):
+    vocation_name = remove_punkt(('-'.join(vocation_name.split('-')[:-1]).split('/')[0]).replace('CFC', '')).strip()
+    return vocation_name
+
+def get_individual_vocation(url, industry=None):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     vocation_name = soup.head.title.text
-    vocation_name = remove_punkt(('-'.join(vocation_name.split('-')[:-1]).split('/')[0]).replace('CFC', '')).strip()
+    vocation_name = clean_vocation_name(vocation_name)
     skills_list = soup.find('div', {'id': 'content'}).find('div', {'class': 'cont'}).\
                        find('div', {'class': 'toggleWrapper'}).findAll('div', {'class': 'toggleBox'})[0].\
                        find('div', {'class': 'boxContent'}).findAll('li')
     skills_list = [x.text for x in skills_list]
-    return pd.DataFrame({'job': [vocation_name]*len(skills_list), 'task': skills_list})
+    if industry is not None:
+        return pd.DataFrame({'job': [vocation_name]*len(skills_list), 'task': skills_list,
+                         'industry': [industry]*len(skills_list)})
+    else:
+        return pd.DataFrame({'job': [vocation_name] * len(skills_list), 'task': skills_list})
 
 
 def get_list_of_vocation_urls(starting_page_url, base_url):
@@ -56,21 +64,23 @@ def get_list_of_vocation_urls(starting_page_url, base_url):
                                     find('div', {'class': 'toggleWrapper'}).\
                                     findAll('div', {'class': 'toggleBox'})[2].\
                                     find('div', {'class': 'boxContent'}).findAll('a')
-    url_list = [a_tag.get('href') for a_tag in url_list]
-    vocation_urls = list()
-    for url in url_list:
+    url_list = {a_tag.text: a_tag.get('href') for a_tag in url_list}
+    vocation_urls = dict()
+    for industry, url in url_list.items():
         response = requests.get(base_url+url)
         soup = BeautifulSoup(response.text, 'html.parser')
         vocations = soup.find('div', {'id': 'result-wrapper'}).findAll('div', {'class': 'result'})
         vocations = [div_tag.find('div', {'class': 'title'}).find('a').get('href') for div_tag in vocations]
-        vocation_urls.extend(vocations)
+        vocation_urls[industry] = vocations
     return vocation_urls
 
 def get_all_vocations(starting_page_url, base_url):
     vocation_urls = get_list_of_vocation_urls(starting_page_url, base_url)
     df_list = list()
-    for url in vocation_urls:
-        df_list.append(get_individual_vocation(base_url+url))
+    for industry in vocation_urls:
+        current_industry_urls = vocation_urls[industry]
+        for url in current_industry_urls:
+            df_list.append(get_individual_vocation(base_url+url, industry=industry))
     return pd.concat(df_list, axis=0)
 
 def translate_df(df, translation_dir='fr-en'):
