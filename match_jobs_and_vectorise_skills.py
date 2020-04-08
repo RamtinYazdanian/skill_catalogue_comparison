@@ -155,6 +155,7 @@ def main():
                                                             'Options are ESCO, ONET, and SWISS.')
     parser.add_argument('--countvec', action='store_true')
     parser.add_argument('--tfidf', action='store_true')
+    parser.add_argument('--w2v', type=str, default=None)
     parser.add_argument('--ngrams', type=int, default=1)
     args = parser.parse_args()
 
@@ -169,7 +170,15 @@ def main():
     job_dfs = [pickle.load(open(df_name, 'rb')) for df_name in job_df_names]
     skill_dfs = [pickle.load(open(df_name, 'rb')) for df_name in skill_df_names]
     dataset_names = args.datasets.split(',')
-    all_exact_match_jobs, job_titles_index = find_exact_matches(job_dfs,
+    if args.w2v is not None:
+        w2v_model = load_w2v_model(args.w2v)
+        all_exact_match_jobs, job_titles_index = find_closest_matches(job_dfs,
+                                                                    [main_titles[x] for x in dataset_names],
+                                                                    [alternative_titles[x] for x in dataset_names],
+                                                                    w2v_model,
+                                                                    [job_id_cols[x] for x in dataset_names])
+    else:
+        all_exact_match_jobs, job_titles_index = find_exact_matches(job_dfs,
                                                                 [main_titles[x] for x in dataset_names],
                                                                 [alternative_titles[x] for x in dataset_names],
                                                                 [job_id_cols[x] for x in dataset_names])
