@@ -48,7 +48,10 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
     :return: A dataframe with all the exact match jobs matched together, and a list of dictionaries binding their
     ids together using the numerical index of the df.
     """
-    modified_title_dfs = [append_all_titles(dfs[i], main_titles[i], alt_titles[i]) for i in range(len(dfs))]
+    if alt_titles is not None:
+        modified_title_dfs = [append_all_titles(dfs[i], main_titles[i], alt_titles[i]) for i in range(len(dfs))]
+    else:
+        modified_title_dfs = [append_all_titles(dfs[i], main_titles[i], None) for i in range(len(dfs))]
     exploded_title_dfs = [explode_appended_titles(modified_title_dfs[i], id_cols[i]) for i in range(len(dfs))]
     all_exact_match_jobs = reduce(lambda left,right: pd.merge(left,right,on='title_simple'), exploded_title_dfs)
     # TODO: Cleaning phase for the titles that shouldn't really have been matched together
@@ -58,8 +61,9 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
                                                       id_cols + ['title_simple'], None)
 
 def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n=1):
-    df_word_vectors = [get_df_word_vectors(dfs[i], main_titles[i], w2v_model) if alt_titles[i] is None else
-                       get_df_word_vectors(dfs[i], [main_titles[i], alternative_titles[i]], w2v_model)
+    df_word_vectors = [get_df_word_vectors(dfs[i], main_titles[i], w2v_model) if alt_titles is None or
+                                                                                 alt_titles[i] is None
+                       else get_df_word_vectors(dfs[i], [main_titles[i], alternative_titles[i]], w2v_model)
                        for i in range(len(dfs))]
     similarities = get_pairwise_similarities(df_word_vectors[0], df_word_vectors[1])
     if top_n == 1:
@@ -155,6 +159,7 @@ def main():
                                                             'Options are ESCO, ONET, and SWISS.')
     parser.add_argument('--countvec', action='store_true')
     parser.add_argument('--tfidf', action='store_true')
+    parser.add_argument('--no_alt_titles', action='store_true')
     parser.add_argument('--w2v', type=str, default=None)
     parser.add_argument('--ngrams', type=int, default=1)
     args = parser.parse_args()
@@ -170,17 +175,21 @@ def main():
     job_dfs = [pickle.load(open(df_name, 'rb')) for df_name in job_df_names]
     skill_dfs = [pickle.load(open(df_name, 'rb')) for df_name in skill_df_names]
     dataset_names = args.datasets.split(',')
+    if args.no_alt_titles:
+        alt_titles = None
+    else:
+        alt_titles = [alternative_titles[x] for x in dataset_names]
     if args.w2v is not None:
         w2v_model = load_w2v_model(args.w2v)
         all_exact_match_jobs, job_titles_index = find_closest_matches(job_dfs,
                                                                     [main_titles[x] for x in dataset_names],
-                                                                    [alternative_titles[x] for x in dataset_names],
+                                                                    alt_titles,
                                                                     w2v_model,
                                                                     [job_id_cols[x] for x in dataset_names])
     else:
         all_exact_match_jobs, job_titles_index = find_exact_matches(job_dfs,
                                                                 [main_titles[x] for x in dataset_names],
-                                                                [alternative_titles[x] for x in dataset_names],
+                                                                alt_titles,
                                                                 [job_id_cols[x] for x in dataset_names])
 
     skills_to_investigate = get_skills_to_investigate_direct_match(skill_dfs,
