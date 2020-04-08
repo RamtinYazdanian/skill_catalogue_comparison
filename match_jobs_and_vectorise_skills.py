@@ -57,6 +57,28 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
     return all_exact_match_jobs, make_indexed_columns(all_exact_match_jobs,
                                                       id_cols + ['title_simple'], None)
 
+def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n=1):
+    df_word_vectors = [get_df_word_vectors(dfs[i], main_titles[i], w2v_model) if alt_titles[i] is None else
+                       get_df_word_vectors(dfs[i], [main_titles[i], alternative_titles[i]], w2v_model)
+                       for i in range(len(dfs))]
+    similarities = get_pairwise_similarities(df_word_vectors[0], df_word_vectors[1])
+    if top_n == 1:
+        matched_indices = np.argmax(similarities, axis=1).tolist()
+        all_matched_jobs = pd.DataFrame({id_cols[0] + '_ind': list(range(len(matched_indices))),
+                                         id_cols[1] + '_ind': matched_indices})
+    else:
+        matched_indices = np.argsort(similarities, axis=1).tolist()
+        matched_indices = [x[-top_n:] for x in matched_indices]
+        all_matched_jobs = pd.DataFrame({id_cols[0] + '_ind': list(range(len(matched_indices)*top_n)),
+                                         id_cols[1] + '_ind': list(chain.from_iterable(matched_indices))})
+
+    for i in range(len(dfs)):
+        all_matched_jobs = pd.merge(all_matched_jobs, dfs[i], right_index=True, left_on=id_cols[i]+'_ind')
+    all_matched_jobs = all_matched_jobs.drop(columns=[id_col+'_ind' for id_col in id_cols])
+    return all_matched_jobs, make_indexed_columns(all_matched_jobs,
+                                                      id_cols + id_cols[0], None)
+
+
 def get_skills_to_investigate_direct_match(skills_and_relations, id_cols, job_titles):
     """
     Takes matched job titles from multiple datasets, and retrieves their respective skills and returns
@@ -129,7 +151,8 @@ def main():
                                             'Names of pickled skills and relations dataframe files, comma separated.')
     parser.add_argument('--datasets', type=str, required=True, help=
                                                     'Names of datasets, comma separated, '
-                                                            'same order as filenames. Options are ESCO and ONET.')
+                                                            'same order as filenames. '
+                                                            'Options are ESCO, ONET, and SWISS.')
     parser.add_argument('--countvec', action='store_true')
     parser.add_argument('--tfidf', action='store_true')
     parser.add_argument('--ngrams', type=int, default=1)
@@ -175,10 +198,10 @@ def main():
     for i in range(len(skills_to_investigate)):
         with open(os.path.join(output_dir, dataset_names[i]+'_skills.pkl'), 'wb') as f:
             pickle.dump(skills_to_investigate[i], f)
-    with open(os.path.join(output_dir, 'matches_df.pkl'), 'wb') as f:
+    with open(os.path.join(output_dir, args.datasets.replace(',','_') + '_matches_df.pkl'), 'wb') as f:
         pickle.dump(all_exact_match_jobs, f)
     if vec_list is not None:
-        with open(os.path.join(output_dir, 'tfidf_model.pkl'), 'wb') as f:
+        with open(os.path.join(output_dir, args.datasets.replace(',','_') + '_tfidf_model.pkl'), 'wb') as f:
             pickle.dump(model, f)
 
 if __name__ == '__main__':

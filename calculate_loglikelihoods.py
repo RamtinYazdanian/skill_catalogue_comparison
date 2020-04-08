@@ -87,9 +87,9 @@ def main():
                                                                         'pathways.')
     parser.add_argument('--datasets', type=str, required=True, help=
                                         'Names of datasets, comma separated, '
-                                        'same order as filenames. Options are ESCO and ONET.')
+                                        'same order as filenames. Options are ESCO, SWISS, and ONET.')
     parser.add_argument('--countvec_model', type=str, required=True)
-    parser.add_argument('--agg_col', type=str, choices=['Career_Cluster', 'Career_Pathway'], default=None)
+    parser.add_argument('--agg_col', type=str, choices=['Career_Cluster', 'Career_Pathway', 'industry'], default=None)
     parser.add_argument('--significant_only', action='store_true')
     parser.add_argument('--top_n', type=int, default=20)
     parser.add_argument('--output_dir', type=str, required=True)
@@ -108,7 +108,7 @@ def main():
     jobs_ll, null_values = join_and_log_likelihood(skill_dfs, dataset_names, 'common_id',
                                countvec_model, aggregation_df=agg_df, names_df=names_df,
                                significant_only=args.significant_only, top_n=args.top_n)
-    with open(os.path.join(args.output_dir, 'jobs_ll.pkl'), 'wb') as f:
+    with open(os.path.join(args.output_dir, args.datasets.replace(',','_') + 'jobs_ll.pkl'), 'wb') as f:
         pickle.dump(jobs_ll, f)
 
 
