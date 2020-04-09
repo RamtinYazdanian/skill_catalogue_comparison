@@ -149,6 +149,7 @@ def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root_dir', type=str, required=True, help='Root dir containing dataframes.')
+    parser.add_argument('--output_dir', type=str, required=True, help='Output dir.')
     parser.add_argument('--jobs_filenames', type=str, required=True, help=
                                             'Names of pickled job dataframe files, comma separated.')
     parser.add_argument('--skills_filenames', type=str, required=True, help=
@@ -168,7 +169,7 @@ def main():
         print('Only one of the two options (TF-IDF and CountVec) is possible!')
         return
 
-    output_dir = os.path.join(args.root_dir, 'matched')
+    output_dir = args.output_dir
 
     job_df_names = [os.path.join(args.root_dir, fn) for fn in args.jobs_filenames.split(',')]
     skill_df_names = [os.path.join(args.root_dir, fn) for fn in args.skills_filenames.split(',')]
