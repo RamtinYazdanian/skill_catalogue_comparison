@@ -61,10 +61,6 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
                                                       id_cols + ['title_simple'], None)
 
 def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n=1):
-    print(main_titles)
-    print(alt_titles)
-    print(w2v_model)
-    print(id_cols)
     df_word_vectors = list()
     for i in range(len(dfs)):
         if alt_titles is None:
@@ -73,10 +69,12 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
             df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i]], w2v_model))
         else:
             df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i], alt_titles[i]], w2v_model))
+        print(len(df_word_vectors[i]))
 
     similarities = get_pairwise_similarities(df_word_vectors[0], df_word_vectors[1])
     if top_n == 1:
-        matched_indices = np.argmax(similarities, axis=1).tolist()
+        matched_indices = np.argmax(similarities, axis=1)
+        print(len(matched_indices))
         all_matched_jobs = pd.DataFrame({id_cols[0] + '_ind': list(range(len(matched_indices))),
                                          id_cols[1] + '_ind': matched_indices})
     else:
