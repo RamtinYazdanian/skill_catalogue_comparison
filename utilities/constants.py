@@ -171,5 +171,6 @@ STOPWORDS = {
         've',
         'm',
         'guy',
-        'dude'
+        'dude',
+        'etc'
 }
