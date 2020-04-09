@@ -209,6 +209,8 @@ def main():
         vec_list = None
         vec_model = None
 
+    print(vec_model)
+
     if vec_list is not None:
         for i in range(len(skills_to_investigate)):
             skills_to_investigate[i]['O_'+dataset_names[i]] = vec_list[i]
