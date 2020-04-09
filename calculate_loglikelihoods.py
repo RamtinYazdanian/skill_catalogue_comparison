@@ -6,15 +6,18 @@ from utilities.pandas_utils import *
 import pickle
 
 def associate_words_with_datasets(df, vocab, suffixes):
-    for i in range(len(suffixes)):
-        suffix = suffixes[i]
-        other_suffix = suffixes[(i+1)%len(suffixes)]
-        df['words_'+suffix] = df.apply(lambda x: [y for y in x['top_words'] if
-                                                  x['O_'+suffix][0,vocab[y]] > x['O_'+other_suffix][0,vocab[y]]], axis=1)
+    for col in df.columns.values:
+        if 'top_words' not in col:
+            continue
+        for i in range(len(suffixes)):
+            suffix = suffixes[i]
+            other_suffix = suffixes[(i+1)%len(suffixes)]
+            df[col+suffix] = df.apply(lambda x: [y for y in x[col] if
+                                                      x['O_'+suffix][0,vocab[y]] > x['O_'+other_suffix][0,vocab[y]]], axis=1)
     return
 
 def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
-                            aggregation_df=None, names_df=None, significant_only=False, top_n=20):
+                            aggregation_df=None, names_df=None, significant=False, top_n=20):
     """
     Only accepts two dfs. This is because the log likelihood ratio is designed for two corpora.
     """
@@ -63,11 +66,11 @@ def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
                     ))).flatten(), nan=-1e20), axis=1)
     print('LL computed')
 
-    if not significant_only:
-        current_joined_df['top_words'] = find_top_words(current_joined_df,
+
+    current_joined_df['top_words'] = find_top_words(current_joined_df,
                                                         'LL', countvec_model, top_n=top_n, modify_df=False)
-    else:
-        current_joined_df['top_words'] = find_top_words(current_joined_df,
+    if significant:
+        current_joined_df['top_words_significant'] = find_top_words(current_joined_df,
                                                         'LL', countvec_model, top_n=top_n, lower_bound=7.82,
                                                         modify_df=False)
     for i in range(len(dfs)):
@@ -90,7 +93,7 @@ def main():
                                         'same order as filenames. Options are ESCO, SWISS, and ONET.')
     parser.add_argument('--countvec_model', type=str, required=True)
     parser.add_argument('--agg_col', type=str, choices=['Career_Cluster', 'Career_Pathway', 'industry'], default=None)
-    parser.add_argument('--significant_only', action='store_true')
+    parser.add_argument('--significant', action='store_true')
     parser.add_argument('--top_n', type=int, default=20)
     parser.add_argument('--output_dir', type=str, required=True)
     args = parser.parse_args()
@@ -106,8 +109,8 @@ def main():
     else:
         agg_df = None
     jobs_ll, null_values = join_and_log_likelihood(skill_dfs, dataset_names, 'common_id',
-                               countvec_model, aggregation_df=agg_df, names_df=names_df,
-                               significant_only=args.significant_only, top_n=args.top_n)
+                                                   countvec_model, aggregation_df=agg_df, names_df=names_df,
+                                                   significant=args.significant, top_n=args.top_n)
     with open(os.path.join(args.output_dir, args.datasets.replace(',','_') + 'jobs_ll.pkl'), 'wb') as f:
         pickle.dump(jobs_ll, f)
 
