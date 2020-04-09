@@ -72,7 +72,7 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
         elif alt_titles[i] is None:
             df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i]], w2v_model))
         else:
-            df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i], alternative_titles[i]], w2v_model))
+            df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i], alt_titles[i]], w2v_model))
 
     similarities = get_pairwise_similarities(df_word_vectors[0], df_word_vectors[1])
     if top_n == 1:
@@ -188,30 +188,30 @@ def main():
     if args.no_alt_titles:
         alt_titles = None
     else:
-        alt_titles = [alternative_titles[x] for x in dataset_names]
+        alt_titles = [ALT_TITLES[x] for x in dataset_names]
     if args.w2v is not None:
         w2v_model = load_w2v_model(args.w2v)
         all_exact_match_jobs, job_titles_index = find_closest_matches(job_dfs,
-                                                                    main_titles=[main_titles[x] for x in dataset_names],
-                                                                    alt_titles=alt_titles,
-                                                                    w2v_model=w2v_model,
-                                                                    id_cols=[job_id_cols[x] for x in dataset_names])
+                                                                      main_titles=[MAIN_TITLES[x] for x in dataset_names],
+                                                                      alt_titles=alt_titles,
+                                                                      w2v_model=w2v_model,
+                                                                      id_cols=[JOB_ID_COLS[x] for x in dataset_names])
     else:
         all_exact_match_jobs, job_titles_index = find_exact_matches(job_dfs,
-                                                                [main_titles[x] for x in dataset_names],
-                                                                alt_titles,
-                                                                [job_id_cols[x] for x in dataset_names])
+                                                                    [MAIN_TITLES[x] for x in dataset_names],
+                                                                    alt_titles,
+                                                                    [JOB_ID_COLS[x] for x in dataset_names])
 
     skills_to_investigate = get_skills_to_investigate_direct_match(skill_dfs,
-                                                           [skill_relations_id_cols[x] for x in dataset_names],
-                                                           job_titles_index)
+                                                                   [SKILL_RELATIONS_ID_COLS[x] for x in dataset_names],
+                                                                   job_titles_index)
 
     if args.countvec:
-        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
+        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], SKILL_LABELS[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=True, return_sum_all=False, dense=False, ngrams=args.ngrams)
     elif args.tfidf:
-        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
+        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], SKILL_LABELS[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=False, return_sum_all=False, dense=False, ngrams=args.ngrams)
     else:
