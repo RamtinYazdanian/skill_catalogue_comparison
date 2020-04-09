@@ -18,11 +18,11 @@ def main():
     args = parser.parse_args()
 
     # Loading the data
-    esco_jobs = pd.read_csv(os.path.join(args.esco_dir,'/occupations_en.csv'))
-    onet_jobs = pd.read_csv(os.path.join(args.onet_dir,'/Occupation Data.txt'), sep='\t')
-    onet_alternative_titles = pd.read_csv(os.path.join(args.onet_dir,'/Alternate Titles.txt'),
+    esco_jobs = pd.read_csv(os.path.join(args.esco_dir,'occupations_en.csv'))
+    onet_jobs = pd.read_csv(os.path.join(args.onet_dir,'Occupation Data.txt'), sep='\t')
+    onet_alternative_titles = pd.read_csv(os.path.join(args.onet_dir,'Alternate Titles.txt'),
                                           sep='\t')
-    onet_career_clusters = pd.read_csv(os.path.join(args.onet_dir,'/All_Career_Clusters.csv'),
+    onet_career_clusters = pd.read_csv(os.path.join(args.onet_dir,'All_Career_Clusters.csv'),
                                        sep=',')
     if args.wordvec is not None:
         w2v_model = load_w2v_model(args.wordvec,
@@ -46,9 +46,9 @@ def main():
         onet_jobs_word_vectors = None
 
     # Loading skills and relations data
-    esco_skills = pd.read_csv(os.path.join(args.esco_dir,'/skills_en.csv'))
+    esco_skills = pd.read_csv(os.path.join(args.esco_dir,'skills_en.csv'))
     esco_job_skill_relations = pd.read_csv(
-        os.path.join(args.esco_dir,'/occupationSkillRelations.csv'))
+        os.path.join(args.esco_dir,'occupationSkillRelations.csv'))
     onet_skills_and_relations = pd.read_csv(os.path.join(args.onet_dir,'/Task Statements.txt'),
                                             sep='\t')
 
@@ -73,21 +73,22 @@ def main():
 
 
     # Saving the results
-    with open('onet_jobs.pkl', 'wb') as f:
+    output_dir = args.output_dir
+    with open(os.path.join(output_dir,'onet_jobs.pkl'), 'wb') as f:
         pickle.dump(onet_jobs, f)
-    with open('esco_jobs.pkl', 'wb') as f:
+    with open(os.path.join(output_dir,'esco_jobs.pkl'), 'wb') as f:
         pickle.dump(esco_jobs, f)
-    with open('onet_skills_and_relations.pkl', 'wb') as f:
+    with open(os.path.join(output_dir,'onet_skills_and_relations.pkl'), 'wb') as f:
         pickle.dump(onet_skills_and_relations, f)
-    with open('esco_skills_and_relations.pkl', 'wb') as f:
+    with open(os.path.join(output_dir,'esco_skills_and_relations.pkl'), 'wb') as f:
         pickle.dump(esco_skills_and_relations, f)
 
     if esco_jobs_word_vectors is not None:
-        with open('esco_jobs_word_vectors.pkl', 'wb') as f:
+        with open(os.path.join(output_dir,'esco_jobs_word_vectors.pkl'), 'wb') as f:
             pickle.dump(esco_jobs_word_vectors, f)
 
     if onet_jobs_word_vectors is not None:
-        with open('onet_jobs_word_vectors.pkl', 'wb') as f:
+        with open(os.path.join(output_dir,'onet_jobs_word_vectors.pkl'), 'wb') as f:
             pickle.dump(onet_jobs_word_vectors, f)
 
 
