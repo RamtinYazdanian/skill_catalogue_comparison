@@ -61,7 +61,7 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
                                                       id_cols + ['title_simple'], None)
 
 def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n=1):
-    df_word_vectors = [get_df_word_vectors(dfs[i], main_titles[i], w2v_model) if alt_titles is None or
+    df_word_vectors = [get_df_word_vectors(dfs[i], [main_titles[i]], w2v_model) if alt_titles is None or
                                                                                  alt_titles[i] is None
                        else get_df_word_vectors(dfs[i], [main_titles[i], alternative_titles[i]], w2v_model)
                        for i in range(len(dfs))]
