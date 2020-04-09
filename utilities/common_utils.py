@@ -42,6 +42,9 @@ def calculate_phrase_pair_similarity(w2v_model, word_1, word_2):
 def get_df_word_vectors(df, column_list, w2v_model):
     print(df.columns)
     print(column_list)
+    if column_list is None:
+        return None
+    column_list = [col for col in column_list if col is not None]
     df_word_vectors = df.apply(lambda x: calculate_word_vec([x[y] for y in column_list], w2v_model), axis=1).values.tolist()
     df_word_vectors = np.array(df_word_vectors)
     return df_word_vectors
