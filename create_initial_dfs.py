@@ -36,7 +36,8 @@ def main():
                                            join_series_with_char}).reset_index()
     onet_jobs = pd.merge(onet_jobs, alternate_labels, on='O*NET-SOC Code')
     onet_jobs = pd.merge(onet_jobs, onet_career_clusters[['Code', 'Career Cluster', 'Career Pathway']],
-                         left_on='O*NET-SOC Code', right_on='Code').drop('Code')
+                         left_on='O*NET-SOC Code', right_on='Code')
+    print(onet_jobs.columns)
 
     if w2v_model is not None:
         esco_jobs_word_vectors = get_df_word_vectors(esco_jobs, ['preferredLabel', 'altLabels'], w2v_model)
