@@ -198,16 +198,16 @@ def main():
                                                            job_titles_index)
 
     if args.countvec:
-        vec_list, model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
+        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=True, return_sum_all=False, dense=False, ngrams=args.ngrams)
     elif args.tfidf:
-        vec_list, model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
+        vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], skill_labels[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=False, return_sum_all=False, dense=False, ngrams=args.ngrams)
     else:
         vec_list = None
-        model = None
+        vec_model = None
 
     if vec_list is not None:
         for i in range(len(skills_to_investigate)):
@@ -221,7 +221,7 @@ def main():
         pickle.dump(all_exact_match_jobs, f)
     if vec_list is not None:
         with open(os.path.join(output_dir, args.datasets.replace(',','_') + '_tfidf_model.pkl'), 'wb') as f:
-            pickle.dump(model, f)
+            pickle.dump(vec_model, f)
 
 if __name__ == '__main__':
     main()
