@@ -87,7 +87,7 @@ def main():
     else:
         correct_translations(swiss_data, 'job', 'job_en', SWISS_CORRECTIONS, abbreviations=None)
     swiss_skills = swiss_data.copy()
-    swiss_jobs = swiss_data.drop(columns=['task', 'task_en']).drop_duplicates()
+    swiss_jobs = swiss_data.drop(columns=['task', 'task_en']).drop_duplicates().reset_index().drop(columns=['index'])
 
     with open(os.path.join(args.output_dir, 'swiss_fixed_skills.pkl'), 'wb') as f:
         pickle.dump(swiss_skills, f)
