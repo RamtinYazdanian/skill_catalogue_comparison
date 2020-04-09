@@ -102,7 +102,7 @@ def main():
     countvec_model = pickle.load(open(args.countvec_model, 'rb'))
     if args.agg_col is not None:
         # We get a single column dataframe; the index is the one used to index all the matches, i.e. common_id.
-        agg_df = names_df[args.agg_col.replace('_', ' ')]
+        agg_df = names_df[[args.agg_col.replace('_', ' ')]]
     else:
         agg_df = None
     jobs_ll, null_values = join_and_log_likelihood(skill_dfs, dataset_names, 'common_id',
