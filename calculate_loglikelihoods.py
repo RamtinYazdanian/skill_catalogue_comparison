@@ -10,7 +10,7 @@ def associate_words_with_datasets(df, vocab, suffixes):
         suffix = suffixes[i]
         other_suffix = suffixes[(i+1)%len(suffixes)]
         df['words_'+suffix] = df.apply(lambda x: [y for y in x['top_words'] if
-                                                  x['O_'+suffix][1,vocab[y]] > x['O_'+other_suffix][1,vocab[y]]])
+                                                  x['O_'+suffix][1,vocab[y]] > x['O_'+other_suffix][1,vocab[y]]], axis=1)
     return
 
 def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
