@@ -69,7 +69,6 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
             df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i]], w2v_model))
         else:
             df_word_vectors.append(get_df_word_vectors(dfs[i], [main_titles[i], alt_titles[i]], w2v_model))
-        print(len(df_word_vectors[i]))
 
     similarities = get_pairwise_similarities(df_word_vectors[0], df_word_vectors[1])
     if top_n == 1:
@@ -82,9 +81,11 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
         matched_indices = [x[-top_n:] for x in matched_indices]
         all_matched_jobs = pd.DataFrame({id_cols[0] + '_ind': list(range(len(matched_indices)*top_n)),
                                          id_cols[1] + '_ind': list(chain.from_iterable(matched_indices))})
-
+    print(all_matched_jobs.head())
+    print(all_matched_jobs.shape)
     for i in range(len(dfs)):
         all_matched_jobs = pd.merge(all_matched_jobs, dfs[i], right_index=True, left_on=id_cols[i]+'_ind')
+
     all_matched_jobs = all_matched_jobs.drop(columns=[id_col+'_ind' for id_col in id_cols])
     print(all_matched_jobs.shape)
     return all_matched_jobs, make_indexed_columns(all_matched_jobs,
