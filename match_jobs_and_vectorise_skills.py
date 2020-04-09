@@ -83,6 +83,9 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
                                          id_cols[1] + '_ind': list(chain.from_iterable(matched_indices))})
     print(all_matched_jobs.head())
     print(all_matched_jobs.shape)
+    print(type(dfs[0].index[0]))
+    print(type(all_matched_jobs.iloc[0]['job_en_ind']))
+    print(dfs[0].index.tolist()[:10])
     for i in range(len(dfs)):
         all_matched_jobs = pd.merge(all_matched_jobs, dfs[i].reset_index(), right_on='index', left_on=id_cols[i]+'_ind')\
                                                     .drop(columns=['index', id_cols[i]+'_ind'])
