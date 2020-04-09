@@ -61,6 +61,9 @@ def find_exact_matches(dfs, main_titles, alt_titles, id_cols):
                                                       id_cols + ['title_simple'], None)
 
 def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n=1):
+    print(main_titles)
+    print(alt_titles)
+    print(w2v_model)
     df_word_vectors = list()
     for i in range(len(dfs)):
         if alt_titles is None:
@@ -188,10 +191,10 @@ def main():
     if args.w2v is not None:
         w2v_model = load_w2v_model(args.w2v)
         all_exact_match_jobs, job_titles_index = find_closest_matches(job_dfs,
-                                                                    [main_titles[x] for x in dataset_names],
-                                                                    alt_titles,
-                                                                    w2v_model,
-                                                                    [job_id_cols[x] for x in dataset_names])
+                                                                    main_titles=[main_titles[x] for x in dataset_names],
+                                                                    alt_titles=alt_titles,
+                                                                    w2v_model=w2v_model,
+                                                                    id_cols=[job_id_cols[x] for x in dataset_names])
     else:
         all_exact_match_jobs, job_titles_index = find_exact_matches(job_dfs,
                                                                 [main_titles[x] for x in dataset_names],
