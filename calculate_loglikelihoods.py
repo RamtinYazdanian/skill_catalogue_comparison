@@ -6,7 +6,8 @@ from utilities.pandas_utils import *
 import pickle
 
 def associate_words_with_datasets(df, vocab, suffixes):
-    for col in df.columns.values:
+    column_names = df.columns.values
+    for col in column_names:
         if 'top_words' not in col:
             continue
         for i in range(len(suffixes)):
