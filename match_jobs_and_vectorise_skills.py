@@ -64,6 +64,7 @@ def find_closest_matches(dfs, main_titles, alt_titles, w2v_model, id_cols, top_n
     print(main_titles)
     print(alt_titles)
     print(w2v_model)
+    print(id_cols)
     df_word_vectors = list()
     for i in range(len(dfs)):
         if alt_titles is None:
