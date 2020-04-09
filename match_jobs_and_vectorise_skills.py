@@ -125,9 +125,9 @@ def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
     cleaned_text = [df[col_name].apply(lambda x: ' '.join(tokenise_stem_punkt_and_stopword(x, do_stem=do_stem))).values
                     for df, col_name in dfs_and_colnames]
     if count_vec:
-        vec_model = CountVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df, ngram_range=(1, ngrams))
+        vec_model = CountVectorizer(min_df=min_df, ngram_range=(1, ngrams))
     else:
-        vec_model = TfidfVectorizer(tokenizer=lambda x: x.split(' '), min_df=min_df, ngram_range=(1, ngrams))
+        vec_model = TfidfVectorizer(min_df=min_df, ngram_range=(1, ngrams))
     vec_model.fit(list(chain.from_iterable(cleaned_text)))
     vec_matrices = [vec_model.transform(text) for text in cleaned_text]
     if not return_sum_all:
