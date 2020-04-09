@@ -95,7 +95,7 @@ def main():
     parser.add_argument('--output_dir', type=str, required=True)
     args = parser.parse_args()
 
-    skill_df_names = [os.path.join(args.root_dir, fn) for fn in args.skills_filenames.split(',')]
+    skill_df_names = args.skills_filenames.split(',')
     skill_dfs = [pickle.load(open(df_name, 'rb')) for df_name in skill_df_names]
     dataset_names = args.datasets.split(',')
     names_df = pickle.load(open(args.jobs_matched, 'rb'))
