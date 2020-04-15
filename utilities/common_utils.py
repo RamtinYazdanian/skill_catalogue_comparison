@@ -62,9 +62,8 @@ def make_sparse_binary(m):
     return csr_matrix(([1]*len(m.indices), m.indices, m.indptr), shape=m.shape)
 
 def compute_doc_freqs_all_words(df, cols):
-    word_freqs_per_dataset = [df[col].apply(make_sparse_binary).sum()
-                                    for col in cols]
-    word_freqs_per_dataset = np.array(make_sparse_binary(sum(word_freqs_per_dataset)).todense()).flatten()
+    word_freqs_per_dataset = df.apply(lambda x: make_sparse_binary(sum([x[col] for col in cols])), axis=1).sum()
+    word_freqs_per_dataset = np.array(word_freqs_per_dataset.todense()).flatten()
     return word_freqs_per_dataset
 
 def get_doc_freq_for_list(words, word_freqs, vocab):
