@@ -18,7 +18,8 @@ def associate_words_with_datasets(df, vocab, suffixes):
     return
 
 def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
-                            aggregation_df=None, names_df=None, significant=False, top_n=20):
+                            aggregation_df=None, names_df=None, significant=False, use_agg_for_doc_freqs=False,
+                            top_n=20):
     """
     Only accepts two dfs. This is because the log likelihood ratio is designed for two corpora.
     """
@@ -27,16 +28,25 @@ def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
         df = dfs[i]
         partially_aggregated_dfs.append(
             df[[col_to_join_by, 'O_' + df_suffixes[i]]].groupby(col_to_join_by).sum())
+
     print('Partial aggregation complete')
 
     current_joined_df = partially_aggregated_dfs[0]
     for i in range(1, len(partially_aggregated_dfs)):
         current_joined_df = current_joined_df.join(partially_aggregated_dfs[i])
 
+    if not use_agg_for_doc_freqs:
+        doc_freqs = compute_doc_freqs_all_words(current_joined_df,
+                                                ['O_' + df_suffixes[i] for i in range(len(df_suffixes))])
+
     if aggregation_df is not None:
         aggregation_col = aggregation_df.columns.values[0]
         current_joined_df = current_joined_df.join(aggregation_df)
         current_joined_df = current_joined_df.groupby(aggregation_col).sum()
+
+    if use_agg_for_doc_freqs:
+        doc_freqs = compute_doc_freqs_all_words(current_joined_df,
+                                                ['O_' + df_suffixes[i] for i in range(len(df_suffixes))])
 
     print('Finished all the joins')
 
@@ -80,7 +90,7 @@ def join_and_log_likelihood(dfs, df_suffixes, col_to_join_by, countvec_model,
     if names_df is not None:
         current_joined_df = current_joined_df.join(names_df)
 
-    return current_joined_df, null_values
+    return current_joined_df, null_values, doc_freqs
 
 
 def main():
@@ -109,11 +119,18 @@ def main():
         agg_df = names_df[[args.agg_col.replace('_', ' ')]]
     else:
         agg_df = None
-    jobs_ll, null_values = join_and_log_likelihood(skill_dfs, dataset_names, 'common_id',
+
+    output_dir = args.output_dir
+
+    jobs_ll, null_values, doc_freqs = join_and_log_likelihood(skill_dfs, dataset_names, 'common_id',
                                                    countvec_model, aggregation_df=agg_df, names_df=names_df,
                                                    significant=args.significant, top_n=args.top_n)
-    with open(os.path.join(args.output_dir, args.datasets.replace(',','_') + 'jobs_ll.pkl'), 'wb') as f:
+    with open(os.path.join(output_dir, args.datasets.replace(',', '_') + '_jobs_ll.pkl'), 'wb') as f:
         pickle.dump(jobs_ll, f)
+
+    if doc_freqs is not None:
+        with open(os.path.join(output_dir, args.datasets.replace(',','_') + '_doc_freqs.pkl'), 'wb') as f:
+            pickle.dump(doc_freqs, f)
 
 
 if __name__ == '__main__':
