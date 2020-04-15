@@ -4,6 +4,7 @@ import errno
 import gensim
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.sparse import csr_matrix
 
 def remove_nones(l):
     return [x for x in l if x is not None]
@@ -56,3 +57,16 @@ def find_one_title(title, df, df_word_vectors, w2v_model, top_n=10):
     similarities = get_pairwise_similarities(title_vector, df_word_vectors).flatten()
     top_hit_indices = (np.argsort(similarities)[::-1])[:top_n]
     return df.iloc[top_hit_indices]
+
+def make_sparse_binary(m):
+    return csr_matrix(([1]*len(m.indices), m.indices, m.indptr), shape=m.shape)
+
+def compute_total_word_doc_freqs(df):
+    word_freqs_per_dataset = [df[col].apply(make_sparse_binary).sum()
+                                    for col in df.columns.values if 'O_' in col]
+    word_freqs_per_dataset = np.array(make_sparse_binary(sum(word_freqs_per_dataset)).todense()).flatten()
+    return word_freqs_per_dataset
+
+def get_idf_value(words, word_freqs, vocab):
+    words_indices = [vocab[word] for word in words]
+    return word_freqs[words_indices]
