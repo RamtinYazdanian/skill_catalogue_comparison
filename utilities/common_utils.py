@@ -61,12 +61,12 @@ def find_one_title(title, df, df_word_vectors, w2v_model, top_n=10):
 def make_sparse_binary(m):
     return csr_matrix(([1]*len(m.indices), m.indices, m.indptr), shape=m.shape)
 
-def compute_total_word_doc_freqs(df):
+def compute_doc_freqs_all_words(df):
     word_freqs_per_dataset = [df[col].apply(make_sparse_binary).sum()
                                     for col in df.columns.values if 'O_' in col]
     word_freqs_per_dataset = np.array(make_sparse_binary(sum(word_freqs_per_dataset)).todense()).flatten()
     return word_freqs_per_dataset
 
-def get_idf_value(words, word_freqs, vocab):
+def get_doc_freq_for_list(words, word_freqs, vocab):
     words_indices = [vocab[word] for word in words]
     return word_freqs[words_indices]
