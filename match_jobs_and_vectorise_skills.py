@@ -116,7 +116,7 @@ def get_skills_to_investigate_direct_match(skills_and_relations, id_cols, job_ti
     return result_list
 
 def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
-                            count_vec=False, return_sum_all=False, dense=False, ngrams=1):
+                            count_vec=False, return_sum_all=False, dense=False, binary=False, ngrams=1, vocab=None):
     """
     Calculates TF-IDF or word count vectors for each row in a column.
     :param dfs_and_colnames: List of tuples; each tuple is (dataframe, colname).
@@ -131,9 +131,9 @@ def calculate_tfidf_for_col(dfs_and_colnames, do_stem=True, min_df=1,
     cleaned_text = [df[col_name].apply(lambda x: ' '.join(tokenise_stem_punkt_and_stopword(x, do_stem=do_stem))).values
                     for df, col_name in dfs_and_colnames]
     if count_vec:
-        vec_model = CountVectorizer(min_df=min_df, ngram_range=(1, ngrams))
+        vec_model = CountVectorizer(min_df=min_df, ngram_range=(1, ngrams), binary=binary, vocabulary=vocab)
     else:
-        vec_model = TfidfVectorizer(min_df=min_df, ngram_range=(1, ngrams))
+        vec_model = TfidfVectorizer(min_df=min_df, ngram_range=(1, ngrams), binary=binary, vocabulary=vocab)
     vec_model.fit(list(chain.from_iterable(cleaned_text)))
     vec_matrices = [vec_model.transform(text) for text in cleaned_text]
     if not return_sum_all:
@@ -207,13 +207,22 @@ def main():
         vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], SKILL_LABELS[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=True, return_sum_all=False, dense=False, ngrams=args.ngrams)
+        second_list, second_model = calculate_tfidf_for_col([(skills_to_investigate[i], SKILL_LABELS[dataset_names[i]])
+                                               for i in range(len(skills_to_investigate))], do_stem=True,
+                                               count_vec=True, return_sum_all=False, dense=False, binary=True,
+                                               vocab = vec_model.vocabulary_, ngrams=args.ngrams)
+
+        second_df = pd.DataFrame(data={i:second_list[i] for i in range(len(second_list))})
+        doc_freqs = compute_doc_freqs_all_words(second_df, list(range(len(second_list))))
     elif args.tfidf:
         vec_list, vec_model = calculate_tfidf_for_col([(skills_to_investigate[i], SKILL_LABELS[dataset_names[i]])
                                                for i in range(len(skills_to_investigate))], do_stem=True,
                                                count_vec=False, return_sum_all=False, dense=False, ngrams=args.ngrams)
+        doc_freqs = None
     else:
         vec_list = None
         vec_model = None
+        doc_freqs = None
 
     print(vec_model)
 
@@ -230,6 +239,9 @@ def main():
     if vec_list is not None:
         with open(os.path.join(output_dir, args.datasets.replace(',','_') + '_tfidf_model.pkl'), 'wb') as f:
             pickle.dump(vec_model, f)
+    if doc_freqs is not None:
+        with open(os.path.join(output_dir, args.datasets.replace(',','_') + 'doc_freqs.pkl'), 'wb') as f:
+            pickle.dump(doc_freqs, f)
 
 if __name__ == '__main__':
     main()
