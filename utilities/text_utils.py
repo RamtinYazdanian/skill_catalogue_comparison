@@ -9,13 +9,13 @@ def is_number(s):
     except ValueError:
         return False
 
-def generate_n_grams(tokens, return_string=True, n=3):
+def generate_n_grams(tokens, return_string=True, n=3, joining_char='_'):
     if n == 1 or tokens == []:
         return tokens
     if len(tokens) >= n:
         n_gram_list = [tokens[i:i+n] for i in range(len(tokens)-n+1)]
         if return_string:
-            n_gram_list = ['_'.join(x) for x in n_gram_list]
+            n_gram_list = [joining_char.join(x) for x in n_gram_list]
         return n_gram_list + generate_n_grams(tokens, return_string=return_string, n=n-1)
     else:
         return generate_n_grams(tokens, return_string=return_string, n=n-1)
@@ -25,7 +25,7 @@ def remove_punkt(text, punkt_to_remove=PUNKT):
     return nopunkt
 
 def tokenise_stem_punkt_and_stopword(text, punkt_to_remove=PUNKT, remove_numbers=True
-                                     , stopword_set=STOPWORDS, do_stem = True):
+                                     , stopword_set=STOPWORDS, do_stem = True, ngrams=1):
 
     """
     Handles text and tokenises it. By default lowercases, removes all HTML tags and escaped characters such as
@@ -50,6 +50,7 @@ def tokenise_stem_punkt_and_stopword(text, punkt_to_remove=PUNKT, remove_numbers
         tokenised = [x for x in tokenised if x not in stopword_set]
     if do_stem:
         stemmer = PorterStemmer()
-        return [stemmer.stem(x) for x in tokenised]
-    else:
-        return tokenised
+        tokenised = [stemmer.stem(x) for x in tokenised]
+    if ngrams > 1:
+        return generate_n_grams(tokenised, return_string=True, n=ngrams, joining_char=' ')
+    return tokenised
