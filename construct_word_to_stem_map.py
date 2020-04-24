@@ -10,7 +10,7 @@ import argparse
 
 def make_word_stem_map(dfs_and_cols, stems_to_keep=None, ngrams=1):
     all_words = chain.from_iterable(
-            [df[col].apply(lambda x: ' '.join(
+            [df[col].dropna().apply(lambda x: ' '.join(
                 tokenise_stem_punkt_and_stopword(x, do_stem=False, ngrams=ngrams))).values
                  for df, col in dfs_and_cols])
     word_counts = Counter(all_words)
