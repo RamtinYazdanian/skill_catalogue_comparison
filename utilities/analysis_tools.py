@@ -5,7 +5,7 @@ from utilities.common_utils import *
 import numpy as np
 import pandas as pd
 
-def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=None):
+def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=None, normalise=False):
     dataset_words = {dataset_names[i]: set(chain.from_iterable(df[cols[i]].values.tolist())) for i in range(len(cols))}
     word_index = list(set(chain.from_iterable(dataset_words.values())))
     word_vector_matrix = np.vstack([calculate_word_vec(word, w2v) for word in word_index])
@@ -13,6 +13,9 @@ def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=N
         pca_model = PCA(n_components=reduce_dim)
         word_vector_matrix = word_vector_matrix - np.mean(word_vector_matrix, axis=0)
         word_vector_matrix = pca_model.fit_transform(word_vector_matrix)
+    if normalise:
+        word_vector_matrix = word_vector_matrix / np.reshape(np.linalg.norm(word_vector_matrix, axis=1),
+                                                             newshape=(word_vector_matrix.shape[0], 1))
     cluster_model = KMeans(n_clusters=n_clusters)
     results = cluster_model.fit_predict(word_vector_matrix)
     return dataset_words, {word_index[i]: results[i] for i in range(len(word_index))}, word_index, word_vector_matrix
