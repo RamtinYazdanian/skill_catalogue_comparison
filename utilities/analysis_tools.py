@@ -35,6 +35,7 @@ def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=N
         print('Silhouette scores:')
         print({n_clusters[i]: silhouettes[i] for i in range(len(n_clusters))})
         results = predictions[np.argmax(silhouettes)]
+        print(n_clusters[np.argmax(silhouettes)])
     else:
         raise Exception('n_clusters must be either an integer or a list of integers')
     return dataset_words, {word_index[i]: results[i] for i in range(len(word_index))}, word_index, word_vector_matrix
