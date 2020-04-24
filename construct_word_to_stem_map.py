@@ -1,5 +1,6 @@
 from utilities.common_utils import *
 from utilities.text_utils import *
+from utilities.dataset_constants import *
 import difflib
 from itertools import chain
 from collections import Counter
@@ -39,7 +40,7 @@ def main():
     args = parser.parse_args()
 
     dataset_names = args.datasets.split(',')
-    col_names = ['O_'+ds for ds in dataset_names]
+    col_names = [SKILL_LABELS[x] for x in dataset_names]
     skill_dfs = [pickle.load(open(os.path.join(args.root_dir, ds+'_skills.pkl'), 'rb')) for ds in dataset_names]
     if args.stems_to_keep is None:
         stems_to_keep = None
