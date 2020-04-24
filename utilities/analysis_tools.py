@@ -5,6 +5,7 @@ from itertools import chain
 from utilities.common_utils import *
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=None, normalise=False):
     dataset_words = {dataset_names[i]: set(chain.from_iterable(df[cols[i]].values.tolist())) for i in range(len(cols))}
@@ -23,11 +24,14 @@ def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=N
     elif isinstance(n_clusters, list):
         models = [KMeans(n_clusters=n) for n in n_clusters]
         predictions = list()
+        inertias = list()
         silhouettes = list()
         for model in models:
             current_results = model.fit_predict(word_vector_matrix)
+            inertias.append(model.inertia_)
             predictions.append(current_results)
             silhouettes.append(silhouette_score(word_vector_matrix, current_results))
+        plt.scatter(x=n_clusters[::-1], y=inertias[::-1])
         print('Silhouette scores:')
         print({n_clusters[i]: silhouettes[i] for i in range(len(n_clusters))})
         results = predictions[np.argmax(silhouettes)]
