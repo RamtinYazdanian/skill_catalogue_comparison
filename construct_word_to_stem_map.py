@@ -10,17 +10,20 @@ import pickle
 import argparse
 
 def make_word_stem_map(dfs_and_cols, stems_to_keep=None, ngrams=1):
-    all_words = chain.from_iterable(
+    all_words = list(chain.from_iterable(
             [df[col].dropna().apply(lambda x: ' '.join(
                 tokenise_stem_punkt_and_stopword(x, do_stem=False, ngrams=ngrams))).values
-                 for df, col in dfs_and_cols])
+                 for df, col in dfs_and_cols]))
+    print(len(all_words))
     word_counts = Counter(all_words)
     words_set = set(all_words)
+    print(len(words_set))
     stemmer = PorterStemmer()
     word_stem_map = {word: ' '.join([stemmer.stem(subword) for subword in word.split(' ')])
                      for word in words_set}
     if stems_to_keep is not None:
         word_stem_map = {k:v for k,v in word_stem_map.items() if v in stems_to_keep}
+    print(len(word_stem_map))
     return word_stem_map, word_counts
 
 def invert_word_stem_map(word_stem_map, word_counts):
@@ -28,8 +31,10 @@ def invert_word_stem_map(word_stem_map, word_counts):
     for word, stem in word_stem_map.items():
         inverted_map[stem] = inverted_map.get(stem, [])
         inverted_map[stem].append(word)
+    print(len(inverted_map))
     final_inverted = {stem: (inverted_map[stem])[np.argmax([word_counts[word] for word in inverted_map[stem]])]
                       for stem in inverted_map}
+    print(len(final_inverted))
     return final_inverted
 
 def main():
