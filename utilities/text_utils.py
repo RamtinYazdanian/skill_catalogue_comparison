@@ -16,9 +16,9 @@ def generate_n_grams(tokens, return_string=True, n=3, joining_char='_'):
         n_gram_list = [tokens[i:i+n] for i in range(len(tokens)-n+1)]
         if return_string:
             n_gram_list = [joining_char.join(x) for x in n_gram_list]
-        return n_gram_list + generate_n_grams(tokens, return_string=return_string, n=n-1)
+        return n_gram_list + generate_n_grams(tokens, return_string=return_string, n=n-1, joining_char=joining_char)
     else:
-        return generate_n_grams(tokens, return_string=return_string, n=n-1)
+        return generate_n_grams(tokens, return_string=return_string, n=n-1, joining_char=joining_char)
 
 def remove_punkt(text, punkt_to_remove=PUNKT):
     nopunkt = " ".join("".join([" " if ch in punkt_to_remove else ch for ch in text]).split())
