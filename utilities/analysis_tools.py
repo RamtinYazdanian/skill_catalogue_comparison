@@ -31,7 +31,7 @@ def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=N
             inertias.append(model.inertia_)
             predictions.append(current_results)
             silhouettes.append(silhouette_score(word_vector_matrix, current_results))
-        plt.scatter(x=n_clusters[::-1], y=inertias[::-1])
+        plt.plot(x=n_clusters[::-1], y=inertias[::-1])
         print('Silhouette scores:')
         print({n_clusters[i]: silhouettes[i] for i in range(len(n_clusters))})
         results = predictions[np.argmax(silhouettes)]
