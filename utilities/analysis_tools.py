@@ -1,5 +1,6 @@
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
 from itertools import chain
 from utilities.common_utils import *
 import numpy as np
@@ -16,8 +17,22 @@ def form_word_clusters(df, cols, w2v, dataset_names, n_clusters=10, reduce_dim=N
     if normalise:
         word_vector_matrix = word_vector_matrix / np.reshape(np.linalg.norm(word_vector_matrix, axis=1),
                                                              newshape=(word_vector_matrix.shape[0], 1))
-    cluster_model = KMeans(n_clusters=n_clusters)
-    results = cluster_model.fit_predict(word_vector_matrix)
+    if isinstance(n_clusters, int):
+        cluster_model = KMeans(n_clusters=n_clusters)
+        results = cluster_model.fit_predict(word_vector_matrix)
+    elif isinstance(n_clusters, list):
+        models = [KMeans(n_clusters=n) for n in n_clusters]
+        predictions = list()
+        silhouettes = list()
+        for model in models:
+            current_results = model.fit_predict(word_vector_matrix)
+            predictions.append(current_results)
+            silhouettes.append(silhouette_score(word_vector_matrix, current_results))
+        print('Silhouette scores:')
+        print({n_clusters[i]: silhouettes[i] for i in range(len(n_clusters))})
+        results = predictions[np.argmax(silhouettes)]
+    else:
+        raise Exception('n_clusters must be either an integer or a list of integers')
     return dataset_words, {word_index[i]: results[i] for i in range(len(word_index))}, word_index, word_vector_matrix
 
 def get_word_dataset_map(dataset_words, word_index):
